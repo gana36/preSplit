@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Edit2, Save } from 'lucide-react';
+import { Check, Edit2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import type { ReceiptItem } from '../types';
 
@@ -39,16 +39,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
         }
     };
 
-    const handleCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEditForm({
-            description: item.description,
-            price: item.price.toString(),
-            discount: item.discount ? item.discount.toString() : '',
-            originalPrice: item.originalPrice ? item.originalPrice.toString() : item.price.toString()
-        });
-        setIsEditing(false);
-    };
+
 
     // Calculate dynamic values for display during edit
     const currentOriginal = parseFloat(editForm.originalPrice) || 0;
