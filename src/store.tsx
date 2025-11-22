@@ -16,6 +16,7 @@ interface AppContextType extends AppState {
     toggleAssignment: (itemId: string, personId: string) => void;
     updateItemPrice: (itemId: string, price: number) => void;
     updateItem: (itemId: string, updates: Partial<ReceiptItem>) => void;
+    updateReceiptTotals: (updates: { tax?: number; tip?: number; miscellaneous?: number }) => void;
     assignAllToAll: () => void;
     clearAllAssignments: () => void;
     reset: () => void;
@@ -91,12 +92,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         );
 
         const newSubtotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
-        const newTotal = newSubtotal + receipt.tax + receipt.tip;
+        const newTotal = newSubtotal + receipt.tax + receipt.tip + (receipt.miscellaneous || 0);
 
         setReceipt({
             ...receipt,
             items: updatedItems,
             subtotal: newSubtotal,
+            total: newTotal
+        });
+    };
+
+    const updateReceiptTotals = (updates: { tax?: number; tip?: number; miscellaneous?: number }) => {
+        if (!receipt) return;
+
+        const newTax = updates.tax !== undefined ? updates.tax : receipt.tax;
+        const newTip = updates.tip !== undefined ? updates.tip : receipt.tip;
+        const newMisc = updates.miscellaneous !== undefined ? updates.miscellaneous : (receipt.miscellaneous || 0);
+
+        const newSubtotal = receipt.subtotal;
+        const newTotal = newSubtotal + newTax + newTip + newMisc;
+
+        setReceipt({
+            ...receipt,
+            tax: newTax,
+            tip: newTip,
+            miscellaneous: newMisc,
             total: newTotal
         });
     };
@@ -137,6 +157,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         toggleAssignment,
         updateItemPrice,
         updateItem,
+        updateReceiptTotals,
         reset,
         assignAllToAll,
         clearAllAssignments

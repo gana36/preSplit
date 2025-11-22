@@ -18,6 +18,7 @@ export interface ReceiptData {
     subtotal: number;
     tax: number;
     tip: number;
+    miscellaneous?: number;
     total: number;
 }
 

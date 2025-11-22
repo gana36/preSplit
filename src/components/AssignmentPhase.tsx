@@ -4,8 +4,61 @@ import { PersonPills } from './PersonPills';
 import { ReceiptItemList } from './ReceiptItemList';
 import { ArrowRight, ChevronUp } from 'lucide-react';
 
+const EditablePill: React.FC<{
+    label: string;
+    value: number;
+    onChange: (val: number) => void;
+}> = ({ label, value, onChange }) => {
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [tempValue, setTempValue] = React.useState(value.toFixed(2));
+
+    const handleSave = () => {
+        const num = parseFloat(tempValue);
+        if (!isNaN(num)) {
+            onChange(num);
+        } else {
+            setTempValue(value.toFixed(2));
+        }
+        setIsEditing(false);
+    };
+
+    return (
+        <div
+            onClick={() => setIsEditing(true)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded border transition-all cursor-pointer ${isEditing
+                ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100'
+                : value > 0
+                    ? 'bg-gray-50 border-gray-200 hover:border-blue-200'
+                    : 'bg-white border-dashed border-gray-200 hover:border-gray-300'
+                }`}
+        >
+            <span className="text-[8px] uppercase font-bold text-gray-400 mb-0 leading-none tracking-wider">{label}</span>
+            {isEditing ? (
+                <div className="flex items-center justify-center w-full">
+                    <span className="text-[9px] text-gray-400 mr-0.5">$</span>
+                    <input
+                        autoFocus
+                        type="number"
+                        step="0.01"
+                        value={tempValue}
+                        onChange={(e) => setTempValue(e.target.value)}
+                        onBlur={handleSave}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                        className="w-8 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-[10px]"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            ) : (
+                <span className={`text-[10px] font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                    ${value.toFixed(2)}
+                </span>
+            )}
+        </div>
+    );
+};
+
 export const AssignmentPhase: React.FC = () => {
-    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments } = useAppStore();
+    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals } = useAppStore();
     const [splitMode, setSplitMode] = React.useState<'manual' | 'equal'>('manual');
     const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
 
@@ -57,7 +110,36 @@ export const AssignmentPhase: React.FC = () => {
             <div className="p-4 border-t border-gray-100 bg-white/80 backdrop-blur-md">
                 <div className="flex justify-between items-center mb-3 text-sm text-gray-500">
                     <span>{assignedItems} of {totalItems} items assigned</span>
-                    <span>${receipt?.subtotal.toFixed(2)} Subtotal</span>
+                </div>
+
+                <div className="mb-2 bg-white border border-gray-100 rounded-lg p-2 shadow-sm">
+                    <div className="flex justify-between items-end mb-2">
+                        <div className="flex items-baseline gap-2">
+                            <p className="text-lg font-bold text-gray-900">${receipt?.total.toFixed(2)}</p>
+                            <p className="text-[10px] text-gray-400">Total</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-medium text-gray-500">Subtotal ${receipt?.subtotal.toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                        <EditablePill
+                            label="Tax"
+                            value={receipt?.tax || 0}
+                            onChange={(val) => updateReceiptTotals({ tax: val })}
+                        />
+                        <EditablePill
+                            label="Tip"
+                            value={receipt?.tip || 0}
+                            onChange={(val) => updateReceiptTotals({ tip: val })}
+                        />
+                        <EditablePill
+                            label="Misc"
+                            value={receipt?.miscellaneous || 0}
+                            onChange={(val) => updateReceiptTotals({ miscellaneous: val })}
+                        />
+                    </div>
                 </div>
 
                 <button
