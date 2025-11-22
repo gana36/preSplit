@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Edit2, Save } from 'lucide-react';
+import { Check, Edit2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import type { ReceiptItem } from '../types';
 
