@@ -14,19 +14,32 @@ export async function parseReceiptImage(imageFile: File): Promise<ReceiptData> {
 
     const prompt = `
     Analyze this receipt image and extract the following data in strict JSON format:
-    - items: an array of objects with "description" (string) and "price" (number).
-    - subtotal: number
-    - tax: number
-    - tip: number (if present, otherwise 0)
-    - total: number
+    {
+      "items": [
+        { 
+          "description": "Item Name", 
+          "price": 8.99, 
+          "originalPrice": 10.99, 
+          "discount": 2.00 
+        }
+      ],
+      "subtotal": 8.99,
+      "tax": 1.00,
+      "tip": 2.00,
+      "total": 11.99
+    }
 
     Rules:
-    - Ignore "Thank You" or decorative text.
-    - Group modifiers with their parent item if possible (e.g. "Burger" + "Cheese" -> "Burger with Cheese").
-    - Ensure all prices are numbers (e.g. 10.50, not "$10.50").
-    - If tax is not explicitly listed, try to calculate it or set to 0.
-    - Return ONLY the JSON object, no markdown formatting.
-  `;
+    1. Extract all line items.
+    2. If an item has a discount/coupon/savings listed below it or associated with it:
+       - Calculate the final "price" = original price - discount.
+       - Set "originalPrice" to the listed price.
+       - Set "discount" to the discount amount (positive number).
+    3. If no discount, just set "price" and omit "originalPrice"/"discount".
+    4. Do not list discounts as separate items. Merge them into the parent item.
+    5. Ignore "Thank You" or other non-item text.
+    6. Ensure all numbers are floats.
+    `;
 
     // Convert file to base64
     const base64Data = await fileToGenerativePart(imageFile);

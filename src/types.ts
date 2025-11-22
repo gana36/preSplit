@@ -2,6 +2,8 @@ export interface ReceiptItem {
     id: string;
     description: string;
     price: number;
+    originalPrice?: number;
+    discount?: number;
     assignedTo: string[]; // Array of person IDs
 }
 
@@ -16,6 +18,7 @@ export interface ReceiptData {
     subtotal: number;
     tax: number;
     tip: number;
+    miscellaneous?: number;
     total: number;
 }
 
