@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store';
 import { PersonPills } from './PersonPills';
 import { ReceiptItemList } from './ReceiptItemList';
-import { ArrowRight, ChevronUp } from 'lucide-react';
+import { ArrowRight, ChevronUp, RotateCcw } from 'lucide-react';
 
 const EditablePill: React.FC<{
     label: string;
@@ -58,9 +58,16 @@ const EditablePill: React.FC<{
 };
 
 export const AssignmentPhase: React.FC = () => {
-    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals } = useAppStore();
+    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals, reset } = useAppStore();
     const [splitMode, setSplitMode] = React.useState<'manual' | 'equal'>('manual');
     const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
+
+    // Auto-assign when people change in Equal mode
+    React.useEffect(() => {
+        if (splitMode === 'equal') {
+            assignAllToAll();
+        }
+    }, [people.length, splitMode]);
 
     // Calculate progress
     const totalItems = receipt?.items.length || 0;
@@ -69,16 +76,21 @@ export const AssignmentPhase: React.FC = () => {
     return (
         <div className="flex flex-col h-full relative">
             <div className="p-4 pb-0">
-
-
-                <PersonPills />
+                <div className="flex justify-between items-start mb-4">
+                    <PersonPills />
+                    <button
+                        onClick={reset}
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                        title="Re-upload Receipt"
+                    >
+                        <RotateCcw className="w-5 h-5" />
+                    </button>
+                </div>
 
                 <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
                     <button
                         onClick={() => {
                             setSplitMode('equal');
-                            // If we are switching to Equal, assign all.
-                            // We can track local state if needed, but for now just trigger action.
                             assignAllToAll();
                         }}
                         className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${splitMode === 'equal'
@@ -115,11 +127,11 @@ export const AssignmentPhase: React.FC = () => {
                 <div className="mb-3 bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-baseline gap-2">
-                            <p className="text-xl font-bold text-gray-900">${receipt?.total.toFixed(2)}</p>
-                            <p className="text-xs text-gray-400">Total</p>
+                            <p className="text-lg font-bold text-gray-900">${(receipt?.total || 0).toFixed(2)}</p>
+                            <p className="text-[10px] text-gray-400">Total</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs font-medium text-gray-500">Subtotal ${receipt?.subtotal.toFixed(2)}</p>
+                            <p className="text-[10px] font-medium text-gray-500">Subtotal ${(receipt?.subtotal || 0).toFixed(2)}</p>
                         </div>
                     </div>
 

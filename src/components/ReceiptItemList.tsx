@@ -13,9 +13,9 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
         description: item.description,
-        price: item.price.toString(),
+        price: (item.price || 0).toString(),
         discount: item.discount ? item.discount.toString() : '',
-        originalPrice: item.originalPrice ? item.originalPrice.toString() : item.price.toString()
+        originalPrice: item.originalPrice ? item.originalPrice.toString() : (item.price || 0).toString()
     });
 
     const handleSave = (e?: React.MouseEvent | React.FormEvent) => {
@@ -38,8 +38,6 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
             handleSave();
         }
     };
-
-
 
     // Calculate dynamic values for display during edit
     const currentOriginal = parseFloat(editForm.originalPrice) || 0;
@@ -120,7 +118,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
 
                 <div className="flex flex-col items-end">
                     <span className="font-bold text-gray-900">
-                        ${isEditing ? currentFinal.toFixed(2) : item.price.toFixed(2)}
+                        ${isEditing ? currentFinal.toFixed(2) : (item.price || 0).toFixed(2)}
                     </span>
                     {isEditing && (
                         <button

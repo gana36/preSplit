@@ -7,7 +7,8 @@ export const CapturePhase: React.FC = () => {
     const { setReceipt, setPhase } = useAppStore();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -18,6 +19,18 @@ export const CapturePhase: React.FC = () => {
 
         try {
             const data = await parseReceiptImage(file);
+
+            // Validate data
+            if (!data.items || data.items.length === 0) {
+                throw new Error("No items found in receipt. Please try again.");
+            }
+
+            // Check if we have at least some valid prices
+            const validItems = data.items.filter(item => typeof item.price === 'number' && !isNaN(item.price));
+            if (validItems.length === 0) {
+                throw new Error("Could not extract prices. Please try a clearer photo.");
+            }
+
             setReceipt(data);
             setPhase('assignment');
         } catch (err: any) {
@@ -36,7 +49,7 @@ export const CapturePhase: React.FC = () => {
 
             <div className="w-full max-w-md space-y-4">
                 <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => cameraInputRef.current?.click()}
                     disabled={isProcessing}
                     className="w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center space-y-4 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -63,18 +76,27 @@ export const CapturePhase: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Camera Input */}
                 <input
                     type="file"
-                    ref={fileInputRef}
+                    ref={cameraInputRef}
                     onChange={handleFileChange}
                     accept="image/*"
                     className="hidden"
                     capture="environment"
                 />
 
-                {/* Fallback upload button if camera capture isn't preferred */}
+                {/* Gallery Input (No capture attribute) */}
+                <input
+                    type="file"
+                    ref={galleryInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                />
+
                 <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => galleryInputRef.current?.click()}
                     className="w-full py-3 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                     <Upload className="w-4 h-4 inline-block mr-2" />
