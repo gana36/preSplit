@@ -21,7 +21,7 @@ export const PersonPills: React.FC = () => {
             {people.map((person) => (
                 <div
                     key={person.id}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-sm animate-in zoom-in duration-200"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white shadow-sm animate-in zoom-in duration-200"
                     style={{ backgroundColor: person.color }}
                 >
                     <span>{person.name}</span>
@@ -43,13 +43,13 @@ export const PersonPills: React.FC = () => {
                         placeholder="Name"
                         autoFocus
                         onBlur={() => !newName && setIsAdding(false)}
-                        className="w-24 px-3 py-1.5 rounded-full text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-28 px-4 py-2 rounded-full text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </form>
             ) : (
                 <button
                     onClick={() => setIsAdding(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     Add Person

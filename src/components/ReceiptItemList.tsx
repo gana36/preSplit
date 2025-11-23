@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Edit2, Save } from 'lucide-react';
+import { Check, Edit2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import type { ReceiptItem } from '../types';
 
@@ -39,16 +39,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
         }
     };
 
-    const handleCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEditForm({
-            description: item.description,
-            price: item.price.toString(),
-            discount: item.discount ? item.discount.toString() : '',
-            originalPrice: item.originalPrice ? item.originalPrice.toString() : item.price.toString()
-        });
-        setIsEditing(false);
-    };
+
 
     // Calculate dynamic values for display during edit
     const currentOriginal = parseFloat(editForm.originalPrice) || 0;
@@ -58,7 +49,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
     return (
         <div
             id={`item-${item.id}`}
-            className={`flex flex-col p-3 bg-white border rounded-xl shadow-sm transition-all duration-500 group relative ${isEditing
+            className={`flex flex-col p-4 bg-white border rounded-xl shadow-sm transition-all duration-500 group relative ${isEditing
                 ? 'ring-2 ring-blue-400 border-blue-400 z-10'
                 : isHighlighted
                     ? 'ring-2 ring-sky-400 border-sky-400 z-10'
@@ -156,7 +147,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                                     toggleAssignment(item.id, person.id);
                                 }}
                                 className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2
+                  w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2
                   ${isAssigned
                                         ? 'border-transparent text-white shadow-sm scale-105'
                                         : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300 hover:bg-gray-100 grayscale'}

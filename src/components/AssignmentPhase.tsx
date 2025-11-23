@@ -25,17 +25,17 @@ const EditablePill: React.FC<{
     return (
         <div
             onClick={() => setIsEditing(true)}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded border transition-all cursor-pointer ${isEditing
+            className={`flex flex-col items-center justify-center py-2 px-2 rounded border transition-all cursor-pointer ${isEditing
                 ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100'
                 : value > 0
                     ? 'bg-gray-50 border-gray-200 hover:border-blue-200'
                     : 'bg-white border-dashed border-gray-200 hover:border-gray-300'
                 }`}
         >
-            <span className="text-[8px] uppercase font-bold text-gray-400 mb-0 leading-none tracking-wider">{label}</span>
+            <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 leading-none tracking-wider">{label}</span>
             {isEditing ? (
                 <div className="flex items-center justify-center w-full">
-                    <span className="text-[9px] text-gray-400 mr-0.5">$</span>
+                    <span className="text-[10px] text-gray-400 mr-0.5">$</span>
                     <input
                         autoFocus
                         type="number"
@@ -44,12 +44,12 @@ const EditablePill: React.FC<{
                         onChange={(e) => setTempValue(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                        className="w-8 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-[10px]"
+                        className="w-10 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-xs"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
             ) : (
-                <span className={`text-[10px] font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                <span className={`text-xs font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
                     ${value.toFixed(2)}
                 </span>
             )}
@@ -103,27 +103,27 @@ export const AssignmentPhase: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
                 <ReceiptItemList highlightedItemId={highlightedId} />
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-white/80 backdrop-blur-md">
+            <div className="p-5 border-t border-gray-100 bg-white/80 backdrop-blur-md pb-[max(20px,env(safe-area-inset-bottom))]">
                 <div className="flex justify-between items-center mb-3 text-sm text-gray-500">
                     <span>{assignedItems} of {totalItems} items assigned</span>
                 </div>
 
-                <div className="mb-2 bg-white border border-gray-100 rounded-lg p-2 shadow-sm">
+                <div className="mb-3 bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-baseline gap-2">
-                            <p className="text-lg font-bold text-gray-900">${receipt?.total.toFixed(2)}</p>
-                            <p className="text-[10px] text-gray-400">Total</p>
+                            <p className="text-xl font-bold text-gray-900">${receipt?.total.toFixed(2)}</p>
+                            <p className="text-xs text-gray-400">Total</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-medium text-gray-500">Subtotal ${receipt?.subtotal.toFixed(2)}</p>
+                            <p className="text-xs font-medium text-gray-500">Subtotal ${receipt?.subtotal.toFixed(2)}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-3 gap-2">
                         <EditablePill
                             label="Tax"
                             value={receipt?.tax || 0}
@@ -161,7 +161,7 @@ export const AssignmentPhase: React.FC = () => {
                             setPhase('settlement');
                         }
                     }}
-                    className={`w-full py-3.5 rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 ${people.length > 0 && assignedItems === totalItems
+                    className={`w-full py-4 rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 ${people.length > 0 && assignedItems === totalItems
                         ? 'bg-blue-600 text-white shadow-blue-200 active:scale-[0.98]'
                         : 'bg-gray-200 text-gray-400 cursor-pointer'
                         }`}
