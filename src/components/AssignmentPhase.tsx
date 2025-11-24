@@ -92,7 +92,7 @@ export const AssignmentPhase: React.FC = () => {
             <div className="p-3 pb-0">
                 <PersonPills />
 
-                <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-1.5">
+                <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-3">
                     <button
                         onClick={() => handleModeSwitch('equal')}
                         disabled={!canSwitchMode}
@@ -120,7 +120,7 @@ export const AssignmentPhase: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-4">
+            <div className="flex-1 overflow-y-auto px-4 pb-4 mt-3">
                 <ReceiptItemList highlightedItemId={highlightedId} />
             </div>
 

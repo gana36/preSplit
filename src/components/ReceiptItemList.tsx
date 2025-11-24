@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Edit2 } from 'lucide-react';
+import { Check, Edit2, Plus, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import type { ReceiptItem } from '../types';
 
@@ -9,7 +9,7 @@ interface ReceiptItemCardProps {
 }
 
 const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }) => {
-    const { updateItem, people, toggleAssignment } = useAppStore();
+    const { updateItem, people, toggleAssignment, receipt, setReceipt } = useAppStore();
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
         description: item.description,
@@ -39,6 +39,22 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
         }
     };
 
+    const handleRemove = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!receipt) return;
+
+        const updatedItems = receipt.items.filter(i => i.id !== item.id);
+        const newSubtotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
+        const newTotal = newSubtotal + (receipt.tax || 0) + (receipt.tip || 0) + (receipt.miscellaneous || 0);
+
+        setReceipt({
+            ...receipt,
+            items: updatedItems,
+            subtotal: newSubtotal,
+            total: newTotal
+        });
+    };
+
     // Calculate dynamic values for display during edit
     const currentOriginal = parseFloat(editForm.originalPrice) || 0;
     const currentDiscount = parseFloat(editForm.discount) || 0;
@@ -48,10 +64,10 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
         <div
             id={`item-${item.id}`}
             className={`flex flex-col p-4 bg-white rounded-2xl shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.1)] active:scale-[0.98] transition-all duration-300 group relative ${isEditing
-                    ? 'ring-2 ring-blue-400 shadow-blue-100'
-                    : isHighlighted
-                        ? 'ring-2 ring-sky-400 shadow-sky-100'
-                        : ''
+                ? 'ring-2 ring-blue-400 shadow-blue-100'
+                : isHighlighted
+                    ? 'ring-2 ring-sky-400 shadow-sky-100'
+                    : ''
                 }`}
         >
             {!isEditing && (
@@ -60,13 +76,22 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                         e.stopPropagation();
                         setIsEditing(true);
                     }}
-                    className="absolute top-2 right-2 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 active:scale-90"
+                    className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                     <Edit2 className="w-4 h-4" />
                 </button>
             )}
+            {isEditing && (
+                <button
+                    onClick={handleRemove}
+                    className="absolute top-3 right-14 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    title="Delete item"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+            )}
 
-            <div className="flex justify-between items-start mb-3 pr-8">
+            <div className={`flex justify-between items-start mb-3 ${isEditing ? 'pr-16' : 'pr-8'}`}>
                 <div className="flex flex-col flex-1 mr-2">
                     {isEditing ? (
                         <input
@@ -172,13 +197,33 @@ interface ReceiptItemListProps {
 }
 
 export const ReceiptItemList: React.FC<ReceiptItemListProps> = ({ highlightedItemId }) => {
-    const { receipt } = useAppStore();
+    const { receipt, setReceipt } = useAppStore();
 
     if (!receipt) return null;
 
+    const handleAddItem = () => {
+        const newItem: ReceiptItem = {
+            id: crypto.randomUUID(),
+            description: 'New Item',
+            price: 0,
+            assignedTo: []
+        };
+
+        const updatedItems = [...receipt.items, newItem];
+        const newSubtotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
+        const newTotal = newSubtotal + (receipt.tax || 0) + (receipt.tip || 0) + (receipt.miscellaneous || 0);
+
+        setReceipt({
+            ...receipt,
+            items: updatedItems,
+            subtotal: newSubtotal,
+            total: newTotal
+        });
+    };
+
     return (
         <div className="flex flex-col h-full">
-            <div className="space-y-3 pb-4">
+            <div className="space-y-3 pt-3 pb-4">
                 {receipt.items.map(item => (
                     <ReceiptItemCard
                         key={item.id}
@@ -186,6 +231,15 @@ export const ReceiptItemList: React.FC<ReceiptItemListProps> = ({ highlightedIte
                         isHighlighted={highlightedItemId === item.id}
                     />
                 ))}
+
+                {/* Add Item Button */}
+                <button
+                    onClick={handleAddItem}
+                    className="w-full flex items-center justify-center gap-2 p-4 bg-white rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 active:scale-[0.98] transition-all duration-200 text-gray-500 hover:text-blue-600"
+                >
+                    <Plus className="w-5 h-5" />
+                    <span className="font-medium">Add Item</span>
+                </button>
             </div>
         </div>
     );

@@ -92,7 +92,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         );
 
         const newSubtotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
-        const newTotal = newSubtotal + receipt.tax + receipt.tip + (receipt.miscellaneous || 0);
+        const newTotal = newSubtotal + (receipt.tax || 0) + (receipt.tip || 0) + (receipt.miscellaneous || 0);
 
         setReceipt({
             ...receipt,
