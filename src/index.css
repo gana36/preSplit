@@ -19,6 +19,25 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased text-base;
+  }
+}
+
+/* Optimize for very small screens */
+@media (max-width: 360px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store';
 import { PersonPills } from './PersonPills';
 import { ReceiptItemList } from './ReceiptItemList';
-import { ArrowRight, ChevronUp, RotateCcw } from 'lucide-react';
+import { ArrowRight, ChevronUp } from 'lucide-react';
 
 const EditablePill: React.FC<{
     label: string;
@@ -25,31 +25,32 @@ const EditablePill: React.FC<{
     return (
         <div
             onClick={() => setIsEditing(true)}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded border transition-all cursor-pointer ${isEditing
+            className={`flex flex-col items-center justify-center py-2 px-2 rounded border transition-all cursor-pointer ${isEditing
                 ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100'
                 : value > 0
                     ? 'bg-gray-50 border-gray-200 hover:border-blue-200'
                     : 'bg-white border-dashed border-gray-200 hover:border-gray-300'
                 }`}
         >
-            <span className="text-[8px] uppercase font-bold text-gray-400 mb-0 leading-none tracking-wider">{label}</span>
+            <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 leading-none tracking-wider">{label}</span>
             {isEditing ? (
                 <div className="flex items-center justify-center w-full">
-                    <span className="text-[9px] text-gray-400 mr-0.5">$</span>
+                    <span className="text-[10px] text-gray-400 mr-0.5">$</span>
                     <input
                         autoFocus
                         type="number"
+                        inputMode="decimal"
                         step="0.01"
                         value={tempValue}
                         onChange={(e) => setTempValue(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                        className="w-8 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-[10px]"
+                        className="w-10 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-xs"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
             ) : (
-                <span className={`text-[10px] font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                <span className={`text-xs font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
                     ${value.toFixed(2)}
                 </span>
             )}
@@ -58,56 +59,60 @@ const EditablePill: React.FC<{
 };
 
 export const AssignmentPhase: React.FC = () => {
-    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals, reset } = useAppStore();
+    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals } = useAppStore();
     const [splitMode, setSplitMode] = React.useState<'manual' | 'equal'>('manual');
     const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
-
-    // Auto-assign when people change in Equal mode
-    React.useEffect(() => {
-        if (splitMode === 'equal') {
-            assignAllToAll();
-        }
-    }, [people.length, splitMode]);
 
     // Calculate progress
     const totalItems = receipt?.items.length || 0;
     const assignedItems = receipt?.items.filter(i => i.assignedTo.length > 0).length || 0;
 
+    const handleModeSwitch = (mode: 'manual' | 'equal') => {
+        // Prevent switching if no people added
+        if (people.length === 0) {
+            return;
+        }
+
+        // Update mode
+        setSplitMode(mode);
+
+        if (mode === 'equal') {
+            // Switch to Equal: assign all items to all people
+            assignAllToAll();
+        } else {
+            // Switch to Manual: clear all assignments
+            clearAllAssignments();
+        }
+    };
+
+    const canSwitchMode = people.length > 0;
+
     return (
         <div className="flex flex-col h-full relative">
-            <div className="p-4 pb-0">
-                <div className="flex justify-between items-start mb-4">
-                    <PersonPills />
-                    <button
-                        onClick={reset}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-                        title="Re-upload Receipt"
-                    >
-                        <RotateCcw className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="p-3 pb-0">
+                <PersonPills />
 
-                <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
+                <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-1.5">
                     <button
-                        onClick={() => {
-                            setSplitMode('equal');
-                            assignAllToAll();
-                        }}
+                        onClick={() => handleModeSwitch('equal')}
+                        disabled={!canSwitchMode}
                         className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${splitMode === 'equal'
                             ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                            : canSwitchMode
+                                ? 'text-gray-500 hover:text-gray-700'
+                                : 'text-gray-300 cursor-not-allowed'
                             }`}
                     >
                         Split Equally
                     </button>
                     <button
-                        onClick={() => {
-                            setSplitMode('manual');
-                            clearAllAssignments();
-                        }}
+                        onClick={() => handleModeSwitch('manual')}
+                        disabled={!canSwitchMode}
                         className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${splitMode === 'manual'
                             ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                            : canSwitchMode
+                                ? 'text-gray-500 hover:text-gray-700'
+                                : 'text-gray-300 cursor-not-allowed'
                             }`}
                     >
                         Manual
@@ -115,27 +120,27 @@ export const AssignmentPhase: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
                 <ReceiptItemList highlightedItemId={highlightedId} />
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-white/80 backdrop-blur-md">
-                <div className="flex justify-between items-center mb-3 text-sm text-gray-500">
+            <div className="p-3 sm:p-4 border-t border-gray-100/50 bg-white/95 backdrop-blur-md pb-[max(16px,env(safe-area-inset-bottom))]">
+                <div className="flex justify-between items-center mb-3 text-xs sm:text-sm text-gray-400 font-medium">
                     <span>{assignedItems} of {totalItems} items assigned</span>
                 </div>
 
-                <div className="mb-2 bg-white border border-gray-100 rounded-lg p-2 shadow-sm">
-                    <div className="flex justify-between items-end mb-2">
+                <div className="mb-3 bg-white rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+                    <div className="flex justify-between items-end mb-1.5">
                         <div className="flex items-baseline gap-2">
-                            <p className="text-lg font-bold text-gray-900">${(receipt?.total || 0).toFixed(2)}</p>
-                            <p className="text-[10px] text-gray-400">Total</p>
+                            <p className="text-2xl sm:text-3xl font-black text-gray-900">${(receipt?.total || 0).toFixed(2)}</p>
+                            <p className="text-xs sm:text-sm text-gray-400 font-medium">Total</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-medium text-gray-500">Subtotal ${(receipt?.subtotal || 0).toFixed(2)}</p>
+                            <p className="text-xs text-gray-400 font-medium">Subtotal <span className="font-bold text-gray-700">${(receipt?.subtotal || 0).toFixed(2)}</span></p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-3 gap-2">
                         <EditablePill
                             label="Tax"
                             value={receipt?.tax || 0}
@@ -173,9 +178,9 @@ export const AssignmentPhase: React.FC = () => {
                             setPhase('settlement');
                         }
                     }}
-                    className={`w-full py-3.5 rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 ${people.length > 0 && assignedItems === totalItems
-                        ? 'bg-blue-600 text-white shadow-blue-200 active:scale-[0.98]'
-                        : 'bg-gray-200 text-gray-400 cursor-pointer'
+                    className={`w-full py-4 rounded-xl font-semibold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.98] ${people.length > 0 && assignedItems === totalItems
+                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-gray-900/30 hover:shadow-gray-900/40 hover:shadow-xl'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                 >
                     {assignedItems < totalItems ? (
