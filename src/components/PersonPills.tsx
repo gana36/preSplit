@@ -17,7 +17,7 @@ export const PersonPills: React.FC = () => {
     };
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory mt-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pt-1 pb-1 snap-x snap-mandatory mt-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {people.map((person) => (
                 <div
                     key={person.id}

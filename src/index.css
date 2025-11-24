@@ -13,24 +13,36 @@
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer base {
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 360px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased text-base;
+    @apply bg-gray-50 text-gray-900 antialiased;
+    /* Prevent zoom on tap for mobile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent zoom on all interactive elements */
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    touch-action: manipulation;
   }
 }
 
-/* Optimize for very small screens */
-@media (max-width: 360px) {
-  body {
-    font-size: 15px;
-  }
-}
-
-/* Hide scrollbars but keep functionality */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;

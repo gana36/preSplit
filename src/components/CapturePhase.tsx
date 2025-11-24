@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, Loader2 } from 'lucide-react';
+import { Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { parseReceiptImage } from '../services/gemini';
+import { FinalLogo } from './FinalLogo';
 
 export const CapturePhase: React.FC = () => {
     const { setReceipt, setPhase } = useAppStore();
@@ -41,42 +42,75 @@ export const CapturePhase: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-full p-6 space-y-8 animate-in fade-in duration-500">
-            <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900">Scan Receipt</h2>
-                <p className="text-gray-500">Take a photo or upload to start splitting</p>
+        <div className="flex flex-col h-full bg-white">
+            {/* Hero Section with Logo and Tagline */}
+            <div className="pt-16 pb-8 px-6 text-center flex flex-col items-center">
+                <FinalLogo size={120} className="mb-6" />
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">
+                    Scan. Beam. Done.
+                </h1>
+                <p className="text-lg text-slate-500 font-medium">
+                    The fastest way to split the bill.
+                </p>
             </div>
 
-            <div className="w-full max-w-md space-y-4">
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col px-6 pb-8 max-w-md mx-auto w-full">
+
+                {/* Camera Viewfinder Button */}
                 <button
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={isProcessing}
-                    className="w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center space-y-4 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 w-full relative group overflow-hidden rounded-[2rem] border border-gray-200 bg-gray-50 transition-all duration-300 active:scale-[0.99] hover:bg-gray-100"
                 >
-                    {isProcessing ? (
-                        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-                    ) : (
-                        <>
-                            <div className="p-4 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
-                                <Camera className="w-8 h-8 text-blue-600" />
+                    {/* Corner Accents (Viewfinder look) */}
+                    <div className="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-gray-300 rounded-tl-xl group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-gray-300 rounded-tr-xl group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-gray-300 rounded-bl-xl group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-gray-300 rounded-br-xl group-hover:border-gray-400 transition-colors" />
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                        {isProcessing ? (
+                            <div className="flex flex-col items-center gap-4">
+                                <Loader2 className="w-12 h-12 text-gray-900 animate-spin" />
+                                <p className="text-sm font-medium text-gray-500 animate-pulse">Reading receipt...</p>
                             </div>
-                            <span className="font-medium text-gray-600 group-hover:text-blue-600">
-                                Tap to Capture
-                            </span>
-                        </>
-                    )}
+                        ) : (
+                            <div className="flex flex-col items-center gap-6 transition-transform duration-300 group-hover:scale-105">
+                                <div className="w-20 h-20 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <Camera className="w-8 h-8 text-gray-900" strokeWidth={1.5} />
+                                </div>
+                                <div className="text-center space-y-1">
+                                    <h2 className="text-xl font-semibold text-gray-900">Scan Receipt</h2>
+                                    <p className="text-sm text-gray-500">Tap to open camera</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </button>
 
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-300" />
+                {/* Secondary Action */}
+                <div className="mt-6 space-y-6">
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-100"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase tracking-wider">
+                            <span className="bg-white px-4 text-gray-400">or</span>
+                        </div>
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-gray-50 px-2 text-gray-500">Or upload file</span>
-                    </div>
+
+                    <button
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={isProcessing}
+                        className="w-full py-4 bg-black text-white rounded-xl font-semibold text-sm hover:bg-gray-900 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <ImageIcon className="w-4 h-4" />
+                        Import from Photos
+                    </button>
                 </div>
 
-                {/* Camera Input */}
+                {/* Hidden Inputs */}
                 <input
                     type="file"
                     ref={cameraInputRef}
@@ -85,8 +119,6 @@ export const CapturePhase: React.FC = () => {
                     className="hidden"
                     capture="environment"
                 />
-
-                {/* Gallery Input (No capture attribute) */}
                 <input
                     type="file"
                     ref={galleryInputRef}
@@ -94,26 +126,15 @@ export const CapturePhase: React.FC = () => {
                     accept="image/*"
                     className="hidden"
                 />
-
-                <button
-                    onClick={() => galleryInputRef.current?.click()}
-                    className="w-full py-3 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                    <Upload className="w-4 h-4 inline-block mr-2" />
-                    Upload from Gallery
-                </button>
             </div>
 
+            {/* Error Toast */}
             {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm text-center animate-in slide-in-from-bottom-2">
-                    {error}
+                <div className="absolute bottom-8 left-6 right-6 mx-auto max-w-md">
+                    <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium text-center shadow-sm border border-red-100 animate-in slide-in-from-bottom-2">
+                        {error}
+                    </div>
                 </div>
-            )}
-
-            {isProcessing && (
-                <p className="text-sm text-gray-500 animate-pulse">
-                    Analyzing receipt with AI...
-                </p>
             )}
         </div>
     );
