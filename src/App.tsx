@@ -12,11 +12,11 @@ const Main: React.FC = () => {
 
   return (
     <div className="h-[100dvh] bg-gray-50 flex flex-col max-w-md md:max-w-2xl mx-auto shadow-xl bg-white overflow-hidden">
-      <header className="px-4 py-3 sm:p-3 border-b border-gray-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-2 min-w-0">
-          <FinalLogo size={28} className="flex-shrink-0 sm:hidden" />
-          <FinalLogo size={32} className="hidden sm:block flex-shrink-0" />
-          <div className="flex items-baseline tracking-tight leading-none text-xl min-w-0">
+      <header className="px-3 py-2 border-b border-gray-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <FinalLogo size={24} className="flex-shrink-0 sm:hidden" />
+          <FinalLogo size={28} className="hidden sm:block flex-shrink-0" />
+          <div className="flex items-baseline tracking-tight leading-none text-lg min-w-0">
             <span className="font-black text-slate-800">Bill</span>
             <span className="font-light text-slate-800">Beam</span>
           </div>
@@ -24,11 +24,11 @@ const Main: React.FC = () => {
         {phase !== 'capture' && (
           <button
             onClick={reset}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all active:scale-90 flex-shrink-0"
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all active:scale-90 flex-shrink-0"
             title="Start Over"
             aria-label="Start Over"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-4 h-4" />
           </button>
         )}
       </header>

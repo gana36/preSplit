@@ -17,11 +17,11 @@ export const PersonPills: React.FC = () => {
     };
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pt-1 pb-1 snap-x snap-mandatory mt-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pt-0.5 pb-0.5 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {people.map((person) => (
                 <div
                     key={person.id}
-                    className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm font-medium text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 animate-in zoom-in"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 animate-in zoom-in"
                     style={{ backgroundColor: person.color }}
                 >
                     <span>{person.name}</span>
@@ -44,13 +44,13 @@ export const PersonPills: React.FC = () => {
                         autoFocus
                         autoCapitalize="words"
                         onBlur={() => !newName && setIsAdding(false)}
-                        className="w-28 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+                        className="w-24 px-2.5 py-1 rounded-full text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
                     />
                 </form>
             ) : (
                 <button
                     onClick={() => setIsAdding(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all duration-200"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all duration-200"
                 >
                     <Plus className="w-4 h-4" />
                     {people.length === 0 && <span>Add Person</span>}
