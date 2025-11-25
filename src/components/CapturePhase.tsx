@@ -44,44 +44,44 @@ export const CapturePhase: React.FC = () => {
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Hero Section with Logo and Tagline */}
-            <div className="pt-16 pb-8 px-6 text-center flex flex-col items-center">
-                <FinalLogo size={120} className="mb-6" />
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">
+            <div className="pt-8 pb-4 px-4 text-center flex flex-col items-center">
+                <FinalLogo size={80} className="mb-4" />
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
                     Scan. Beam. Done.
                 </h1>
-                <p className="text-lg text-slate-500 font-medium">
+                <p className="text-base text-slate-500 font-medium">
                     The fastest way to split the bill.
                 </p>
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col px-6 pb-8 max-w-md mx-auto w-full">
+            <div className="flex-1 flex flex-col px-4 pb-6 max-w-md mx-auto w-full">
 
                 {/* Camera Viewfinder Button */}
                 <button
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={isProcessing}
-                    className="flex-1 w-full relative group overflow-hidden rounded-[2rem] border border-gray-200 bg-gray-50 transition-all duration-300 active:scale-[0.99] hover:bg-gray-100"
+                    className="flex-1 w-full relative group overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition-all duration-300 active:scale-[0.99] hover:bg-gray-100"
                 >
                     {/* Corner Accents (Viewfinder look) */}
-                    <div className="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-gray-300 rounded-tl-xl group-hover:border-gray-400 transition-colors" />
-                    <div className="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-gray-300 rounded-tr-xl group-hover:border-gray-400 transition-colors" />
-                    <div className="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-gray-300 rounded-bl-xl group-hover:border-gray-400 transition-colors" />
-                    <div className="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-gray-300 rounded-br-xl group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-gray-300 rounded-tl-lg group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-gray-300 rounded-tr-lg group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-gray-300 rounded-bl-lg group-hover:border-gray-400 transition-colors" />
+                    <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-gray-300 rounded-br-lg group-hover:border-gray-400 transition-colors" />
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                         {isProcessing ? (
-                            <div className="flex flex-col items-center gap-4">
-                                <Loader2 className="w-12 h-12 text-gray-900 animate-spin" />
+                            <div className="flex flex-col items-center gap-3">
+                                <Loader2 className="w-10 h-10 text-gray-900 animate-spin" />
                                 <p className="text-sm font-medium text-gray-500 animate-pulse">Reading receipt...</p>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center gap-6 transition-transform duration-300 group-hover:scale-105">
-                                <div className="w-20 h-20 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center">
-                                    <Camera className="w-8 h-8 text-gray-900" strokeWidth={1.5} />
+                            <div className="flex flex-col items-center gap-4 transition-transform duration-300 group-hover:scale-105">
+                                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <Camera className="w-7 h-7 text-gray-900" strokeWidth={1.5} />
                                 </div>
-                                <div className="text-center space-y-1">
-                                    <h2 className="text-xl font-semibold text-gray-900">Scan Receipt</h2>
+                                <div className="text-center space-y-0.5">
+                                    <h2 className="text-lg font-semibold text-gray-900">Scan Receipt</h2>
                                     <p className="text-sm text-gray-500">Tap to open camera</p>
                                 </div>
                             </div>
@@ -90,7 +90,7 @@ export const CapturePhase: React.FC = () => {
                 </button>
 
                 {/* Secondary Action */}
-                <div className="mt-6 space-y-6">
+                <div className="mt-4 space-y-4">
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-100"></div>
@@ -103,7 +103,7 @@ export const CapturePhase: React.FC = () => {
                     <button
                         onClick={() => galleryInputRef.current?.click()}
                         disabled={isProcessing}
-                        className="w-full py-4 bg-black text-white rounded-xl font-semibold text-sm hover:bg-gray-900 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
+                        className="w-full py-3 bg-black text-white rounded-xl font-semibold text-sm hover:bg-gray-900 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
                         <ImageIcon className="w-4 h-4" />
                         Import from Photos
@@ -130,7 +130,7 @@ export const CapturePhase: React.FC = () => {
 
             {/* Error Toast */}
             {error && (
-                <div className="absolute bottom-8 left-6 right-6 mx-auto max-w-md">
+                <div className="absolute bottom-6 left-4 right-4 mx-auto max-w-md">
                     <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium text-center shadow-sm border border-red-100 animate-in slide-in-from-bottom-2">
                         {error}
                     </div>

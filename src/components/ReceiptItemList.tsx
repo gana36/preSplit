@@ -63,7 +63,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
     return (
         <div
             id={`item-${item.id}`}
-            className={`flex flex-col p-4 bg-white rounded-2xl shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.1)] active:scale-[0.98] transition-all duration-300 group relative ${isEditing
+            className={`flex flex-col p-3 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_3px_16px_rgba(0,0,0,0.1)] active:scale-[0.98] transition-all duration-300 group relative ${isEditing
                 ? 'ring-2 ring-blue-400 shadow-blue-100'
                 : isHighlighted
                     ? 'ring-2 ring-sky-400 shadow-sky-100'
@@ -76,22 +76,22 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                         e.stopPropagation();
                         setIsEditing(true);
                     }}
-                    className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5" />
                 </button>
             )}
             {isEditing && (
                 <button
                     onClick={handleRemove}
-                    className="absolute top-3 right-14 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    className="absolute top-2 right-12 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                     title="Delete item"
                 >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                 </button>
             )}
 
-            <div className={`flex justify-between items-start mb-3 ${isEditing ? 'pr-16' : 'pr-8'}`}>
+            <div className={`flex justify-between items-start mb-2 ${isEditing ? 'pr-16' : 'pr-8'}`}>
                 <div className="flex flex-col flex-1 mr-2">
                     {isEditing ? (
                         <input
@@ -100,10 +100,10 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                             onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                             onKeyDown={handleKeyDown}
                             onClick={e => e.stopPropagation()}
-                            className="font-medium text-gray-900 bg-transparent border-b border-blue-300 focus:border-blue-600 outline-none p-0 rounded-none w-full"
+                            className="text-base font-medium text-gray-900 bg-transparent border-b border-blue-300 focus:border-blue-600 outline-none p-0 rounded-none w-full"
                         />
                     ) : (
-                        <span className="font-medium text-gray-900">{item.description}</span>
+                        <span className="text-sm font-medium text-gray-900">{item.description}</span>
                     )}
 
                     {(item.discount || isEditing) && (
@@ -117,8 +117,9 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                                         step="0.01"
                                         value={editForm.originalPrice}
                                         onChange={e => setEditForm({ ...editForm, originalPrice: e.target.value })}
-                                        className="text-xs text-gray-600 font-medium bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none w-16 p-0"
+                                        className="text-sm text-gray-600 font-medium bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none w-16 p-0"
                                         placeholder="Orig"
+                                        style={{ fontSize: '16px' }}
                                     />
                                     <span className="text-xs text-gray-400">-</span>
                                     <span className="text-xs text-gray-400">$</span>
@@ -128,8 +129,9 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                                         step="0.01"
                                         value={editForm.discount}
                                         onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
-                                        className="text-xs text-green-600 font-medium bg-transparent border-b border-green-300 focus:border-green-600 outline-none w-12 p-0"
+                                        className="text-sm text-green-600 font-medium bg-transparent border-b border-green-300 focus:border-green-600 outline-none w-12 p-0"
                                         placeholder="Disc"
+                                        style={{ fontSize: '16px' }}
                                     />
                                 </>
                             ) : (
@@ -158,7 +160,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
                 {people.length === 0 ? (
                     <span className="text-xs text-gray-400 italic">Add people to assign</span>
                 ) : (
@@ -172,7 +174,7 @@ const ReceiptItemCard: React.FC<ReceiptItemCardProps> = ({ item, isHighlighted }
                                     toggleAssignment(item.id, person.id);
                                 }}
                                 className={`
-                  w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2
+                  w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2
                   ${isAssigned
                                         ? 'border-transparent text-white shadow-sm scale-105'
                                         : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300 hover:bg-gray-100 grayscale'}
@@ -223,7 +225,7 @@ export const ReceiptItemList: React.FC<ReceiptItemListProps> = ({ highlightedIte
 
     return (
         <div className="flex flex-col h-full">
-            <div className="space-y-3 pt-3 pb-4">
+            <div className="space-y-2 pt-1 pb-3">
                 {receipt.items.map(item => (
                     <ReceiptItemCard
                         key={item.id}
@@ -235,10 +237,10 @@ export const ReceiptItemList: React.FC<ReceiptItemListProps> = ({ highlightedIte
                 {/* Add Item Button */}
                 <button
                     onClick={handleAddItem}
-                    className="w-full flex items-center justify-center gap-2 p-4 bg-white rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 active:scale-[0.98] transition-all duration-200 text-gray-500 hover:text-blue-600"
+                    className="w-full flex items-center justify-center gap-2 p-3 bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 active:scale-[0.98] transition-all duration-200 text-gray-500 hover:text-blue-600"
                 >
-                    <Plus className="w-5 h-5" />
-                    <span className="font-medium">Add Item</span>
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Add Item</span>
                 </button>
             </div>
         </div>

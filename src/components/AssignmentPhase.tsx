@@ -45,7 +45,7 @@ const EditablePill: React.FC<{
                         onChange={(e) => setTempValue(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                        className="w-10 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-xs"
+                        className="w-10 bg-transparent text-center font-bold text-gray-900 outline-none p-0 text-base"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
@@ -89,10 +89,10 @@ export const AssignmentPhase: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full relative">
-            <div className="p-3 pb-0">
+            <div className="px-3 pt-2 pb-1">
                 <PersonPills />
 
-                <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-3">
+                <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-2">
                     <button
                         onClick={() => handleModeSwitch('equal')}
                         disabled={!canSwitchMode}
@@ -120,27 +120,23 @@ export const AssignmentPhase: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-4 mt-3">
+            <div className="flex-1 overflow-y-auto px-3 pb-3 mt-1">
                 <ReceiptItemList highlightedItemId={highlightedId} />
             </div>
 
-            <div className="p-3 sm:p-4 border-t border-gray-100/50 bg-white/95 backdrop-blur-md pb-[max(16px,env(safe-area-inset-bottom))]">
-                <div className="flex justify-between items-center mb-3 text-xs sm:text-sm text-gray-400 font-medium">
-                    <span>{assignedItems} of {totalItems} items assigned</span>
-                </div>
-
-                <div className="mb-3 bg-white rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.12)] transition-shadow duration-300">
-                    <div className="flex justify-between items-end mb-1.5">
-                        <div className="flex items-baseline gap-2">
-                            <p className="text-2xl sm:text-3xl font-black text-gray-900">${(receipt?.total || 0).toFixed(2)}</p>
-                            <p className="text-xs sm:text-sm text-gray-400 font-medium">Total</p>
+            <div className="p-2.5 border-t border-gray-100/50 bg-white/95 backdrop-blur-md pb-[max(12px,env(safe-area-inset-bottom))]">
+                <div className="mb-2 bg-white rounded-xl p-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+                    <div className="flex justify-between items-center mb-1.5">
+                        <div className="flex items-baseline gap-1.5">
+                            <p className="text-xl font-black text-gray-900">${(receipt?.total || 0).toFixed(2)}</p>
+                            <p className="text-[10px] text-gray-400 font-medium">Total</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-gray-400 font-medium">Subtotal <span className="font-bold text-gray-700">${(receipt?.subtotal || 0).toFixed(2)}</span></p>
+                            <p className="text-[10px] text-gray-400 font-medium">Sub <span className="font-bold text-gray-700">${(receipt?.subtotal || 0).toFixed(2)}</span></p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5">
                         <EditablePill
                             label="Tax"
                             value={receipt?.tax || 0}
@@ -178,7 +174,7 @@ export const AssignmentPhase: React.FC = () => {
                             setPhase('settlement');
                         }
                     }}
-                    className={`w-full py-4 rounded-xl font-semibold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.98] ${people.length > 0 && assignedItems === totalItems
+                    className={`w-full py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.98] ${people.length > 0 && assignedItems === totalItems
                         ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-gray-900/30 hover:shadow-gray-900/40 hover:shadow-xl'
                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
