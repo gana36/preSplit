@@ -1,11 +1,18 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { ReceiptData, Person, AppPhase, ReceiptItem } from './types';
+import type { ReceiptData, Person, AppPhase, ReceiptItem, User, SavedReceipt } from './types';
+import { onAuthStateChange, signInWithGoogle, signOut } from './services/auth';
+import { saveReceipt as saveReceiptToFirestore, loadReceipts, deleteReceipt } from './services/firestore';
+import type { User as FirebaseUser } from 'firebase/auth';
+import toast from 'react-hot-toast';
 
 interface AppState {
     phase: AppPhase;
     receipt: ReceiptData | null;
     people: Person[];
+    user: User | null;
+    authLoading: boolean;
+    receiptHistory: SavedReceipt[];
 }
 
 interface AppContextType extends AppState {
@@ -20,6 +27,12 @@ interface AppContextType extends AppState {
     assignAllToAll: () => void;
     clearAllAssignments: () => void;
     reset: () => void;
+    signIn: () => Promise<void>;
+    signOutUser: () => Promise<void>;
+    saveCurrentReceipt: () => Promise<void>;
+    loadReceipt: (savedReceipt: SavedReceipt) => void;
+    deleteReceiptFromHistory: (receiptId: string) => Promise<void>;
+    refreshHistory: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -33,6 +46,43 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [phase, setPhase] = useState<AppPhase>('capture');
     const [receipt, setReceipt] = useState<ReceiptData | null>(null);
     const [people, setPeople] = useState<Person[]>([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [receiptHistory, setReceiptHistory] = useState<SavedReceipt[]>([]);
+
+    // Listen to auth state changes
+    useEffect(() => {
+        const unsubscribe = onAuthStateChange((firebaseUser: FirebaseUser | null) => {
+            if (firebaseUser) {
+                const userData: User = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                };
+                setUser(userData);
+                // Load receipt history when user signs in
+                loadReceiptsForUser(firebaseUser.uid);
+            } else {
+                setUser(null);
+                setReceiptHistory([]);
+            }
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // Load receipts for a user
+    const loadReceiptsForUser = async (userId: string) => {
+        try {
+            const receipts = await loadReceipts(userId);
+            setReceiptHistory(receipts);
+        } catch (error) {
+            console.error('Error loading receipts:', error);
+            toast.error('Failed to load receipt history');
+        }
+    };
 
     const addPerson = (name: string) => {
         const newPerson: Person = {
@@ -146,10 +196,77 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setReceipt({ ...receipt, items: updatedItems });
     };
 
+    // Auth methods
+    const signIn = async () => {
+        try {
+            await signInWithGoogle();
+            toast.success('Signed in successfully!');
+        } catch (error) {
+            console.error('Sign in error:', error);
+            toast.error('Failed to sign in. Please try again.');
+        }
+    };
+
+    const signOutUser = async () => {
+        try {
+            await signOut();
+            toast.success('Signed out successfully');
+        } catch (error) {
+            console.error('Sign out error:', error);
+            toast.error('Failed to sign out');
+        }
+    };
+
+    const saveCurrentReceipt = async () => {
+        if (!user || !receipt) {
+            toast.error('Please sign in to save receipts');
+            return;
+        }
+
+        try {
+            await saveReceiptToFirestore(user.uid, receipt, people);
+            toast.success('Receipt saved successfully!');
+            // Refresh history
+            await loadReceiptsForUser(user.uid);
+        } catch (error) {
+            console.error('Error saving receipt:', error);
+            toast.error('Failed to save receipt');
+        }
+    };
+
+    const loadReceipt = (savedReceipt: SavedReceipt) => {
+        setReceipt(savedReceipt.receipt);
+        setPeople(savedReceipt.people);
+        setPhase('assignment');
+        toast.success('Receipt loaded!');
+    };
+
+    const deleteReceiptFromHistory = async (receiptId: string) => {
+        if (!user) return;
+
+        try {
+            await deleteReceipt(user.uid, receiptId);
+            toast.success('Receipt deleted');
+            // Refresh history
+            await loadReceiptsForUser(user.uid);
+        } catch (error) {
+            console.error('Error deleting receipt:', error);
+            toast.error('Failed to delete receipt');
+        }
+    };
+
+    const refreshHistory = async () => {
+        if (!user) return;
+        await loadReceiptsForUser(user.uid);
+    };
+
     const value = {
         phase,
         receipt,
         people,
+        user,
+        authLoading,
+        receiptHistory,
         setPhase,
         setReceipt,
         addPerson,
@@ -160,7 +277,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateReceiptTotals,
         reset,
         assignAllToAll,
-        clearAllAssignments
+        clearAllAssignments,
+        signIn,
+        signOutUser,
+        saveCurrentReceipt,
+        loadReceipt,
+        deleteReceiptFromHistory,
+        refreshHistory
     };
 
     return (

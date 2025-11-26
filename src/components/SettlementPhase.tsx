@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useAppStore } from '../store';
-import { Share2, ArrowLeft, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { Share2, ArrowLeft, ChevronDown, ChevronUp, Copy, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const SettlementPhase: React.FC = () => {
-    const { receipt, people, setPhase } = useAppStore();
+    const { receipt, people, setPhase, user, saveCurrentReceipt } = useAppStore();
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [roundToDollar, setRoundToDollar] = useState(false);
 
@@ -203,7 +203,16 @@ export const SettlementPhase: React.FC = () => {
 
             {/* Footer Actions */}
             <div className="p-3 bg-white border-t border-gray-100 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className={user ? "grid grid-cols-3 gap-2" : "grid grid-cols-2 gap-2.5"}>
+                    {user && (
+                        <button
+                            onClick={saveCurrentReceipt}
+                            className="bg-gradient-to-br from-blue-500 to-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                            <Save className="w-4 h-4" />
+                            Save
+                        </button>
+                    )}
                     <button
                         onClick={handleShare}
                         className="bg-gradient-to-br from-gray-800 to-gray-900 text-white py-3 rounded-xl font-semibold shadow-lg shadow-gray-900/20 hover:shadow-gray-900/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"

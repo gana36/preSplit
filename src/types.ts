@@ -23,3 +23,18 @@ export interface ReceiptData {
 }
 
 export type AppPhase = 'capture' | 'assignment' | 'settlement';
+
+export interface User {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    photoURL: string | null;
+}
+
+export interface SavedReceipt {
+    id: string;
+    receipt: ReceiptData;
+    people: Person[];
+    createdAt: Date;
+    userId: string;
+}
