@@ -4,9 +4,18 @@ import { Share2, ArrowLeft, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const SettlementPhase: React.FC = () => {
-    const { receipt, people, setPhase } = useAppStore();
+    const { receipt, people, setPhase, user, saveCurrentReceipt } = useAppStore();
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [roundToDollar, setRoundToDollar] = useState(false);
+    const hasSavedRef = React.useRef(false);
+
+    // Auto-save on mount
+    React.useEffect(() => {
+        if (user && receipt && !hasSavedRef.current) {
+            hasSavedRef.current = true;
+            saveCurrentReceipt();
+        }
+    }, []); // Run once on mount
 
     const settlementData = useMemo(() => {
         if (!receipt) return [];
@@ -57,8 +66,8 @@ export const SettlementPhase: React.FC = () => {
         ).join('\n');
 
         const shareData = {
-            title: 'SmartSplit Receipt',
-            text: `Here is the split:\n\n${text}\n\nTotal: $${receipt?.total.toFixed(2)}`,
+            title: `Split: ${receipt?.title || 'Bill'}`,
+            text: `Here is the split for ${receipt?.title || 'the bill'}:\n\n${text}\n\nTotal: $${receipt?.total.toFixed(2)}`,
         };
 
         try {
@@ -94,22 +103,24 @@ export const SettlementPhase: React.FC = () => {
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <div className="text-[10px] text-gray-400 font-medium mb-1">Total Bill</div>
+                    <div className="text-[10px] text-gray-400 font-medium mb-1">
+                        {receipt?.title || 'Total Bill'}
+                    </div>
                     <div className="text-3xl font-black text-gray-900">
                         ${receipt?.total.toFixed(2)}
                     </div>
                 </div>
 
-                {/* Modern iOS Toggle */}
-                <div className="flex justify-center">
+                {/* Controls */}
+                <div className="flex justify-center gap-2">
                     <button
                         onClick={() => setRoundToDollar(!roundToDollar)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-full text-xs font-medium transition-all bg-gray-50 hover:bg-gray-100"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-gray-50 hover:bg-gray-100 border border-gray-100"
                     >
-                        <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${roundToDollar ? 'bg-blue-500' : 'bg-gray-300'}`}>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-200 ${roundToDollar ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                        <div className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${roundToDollar ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                            <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-md transition-transform duration-200 ${roundToDollar ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
                         </div>
-                        <span className="text-gray-700">Round to nearest $1</span>
+                        <span className="text-gray-600">Round</span>
                     </button>
                 </div>
             </div>
@@ -203,7 +214,8 @@ export const SettlementPhase: React.FC = () => {
 
             {/* Footer Actions */}
             <div className="p-3 bg-white border-t border-gray-100 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className={user ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-2.5"}>
+                    {/* Save button removed as auto-save is implemented */}
                     <button
                         onClick={handleShare}
                         className="bg-gradient-to-br from-gray-800 to-gray-900 text-white py-3 rounded-xl font-semibold shadow-lg shadow-gray-900/20 hover:shadow-gray-900/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"

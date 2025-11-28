@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store';
 import { PersonPills } from './PersonPills';
 import { ReceiptItemList } from './ReceiptItemList';
-import { ArrowRight, ChevronUp } from 'lucide-react';
+import { ArrowRight, ChevronUp, Pen } from 'lucide-react';
 
 const EditablePill: React.FC<{
     label: string;
@@ -59,9 +59,25 @@ const EditablePill: React.FC<{
 };
 
 export const AssignmentPhase: React.FC = () => {
-    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals } = useAppStore();
+    const { setPhase, receipt, people, assignAllToAll, clearAllAssignments, updateReceiptTotals, updateReceiptTitle } = useAppStore();
     const [splitMode, setSplitMode] = React.useState<'manual' | 'equal'>('manual');
     const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
+    const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+    const [tempTitle, setTempTitle] = React.useState('');
+
+    // Initialize title if missing
+    React.useEffect(() => {
+        if (receipt && !receipt.title) {
+            updateReceiptTitle(`Receipt ${new Date().toLocaleDateString()}`);
+        }
+    }, [receipt]);
+
+    const handleTitleSave = () => {
+        if (tempTitle.trim()) {
+            updateReceiptTitle(tempTitle.trim());
+        }
+        setIsEditingTitle(false);
+    };
 
     // Calculate progress
     const totalItems = receipt?.items.length || 0;
@@ -90,6 +106,38 @@ export const AssignmentPhase: React.FC = () => {
     return (
         <div className="flex flex-col h-full relative">
             <div className="px-3 pt-2 pb-1">
+                {/* Title Header */}
+                <div className="flex items-center justify-between mb-3 px-1">
+                    {isEditingTitle ? (
+                        <input
+                            autoFocus
+                            type="text"
+                            value={tempTitle}
+                            onChange={(e) => setTempTitle(e.target.value)}
+                            onBlur={handleTitleSave}
+                            onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
+                            className="text-lg font-black text-gray-900 bg-transparent border-b-2 border-blue-500 outline-none w-full"
+                            placeholder="Receipt Name"
+                        />
+                    ) : (
+                        <div
+                            onClick={() => {
+                                setTempTitle(receipt?.title || '');
+                                setIsEditingTitle(true);
+                            }}
+                            className="flex items-center gap-2 group cursor-pointer"
+                        >
+                            <h2 className="text-lg font-black text-gray-900 truncate max-w-[200px]">
+                                {receipt?.title || 'Receipt'}
+                            </h2>
+                            <Pen className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                        </div>
+                    )}
+                    <div className="text-xs font-medium text-gray-400">
+                        {new Date().toLocaleDateString()}
+                    </div>
+                </div>
+
                 <PersonPills />
 
                 <div className="flex bg-gray-100/60 backdrop-blur-sm p-1 rounded-xl shadow-inner mb-1 mt-2">
