@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
+import { ConfirmDialog } from './ConfirmDialog';
 import { X, Trash2, Receipt, ArrowRight, Calendar } from 'lucide-react';
 
 interface HistoryModalProps {
@@ -11,6 +12,7 @@ interface HistoryModalProps {
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose, onReceiptSelect }) => {
     const { receiptHistory, loadReceipt, deleteReceiptFromHistory } = useAppStore();
+    const [confirmingReceiptId, setConfirmingReceiptId] = React.useState<string | null>(null);
 
     const handleLoadReceipt = (receipt: typeof receiptHistory[0]) => {
         loadReceipt(receipt);
@@ -20,10 +22,15 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose, onReceiptSe
         }
     };
 
-    const handleDeleteReceipt = async (receiptId: string, e: React.MouseEvent) => {
+    const handleDeleteClick = (receiptId: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this receipt?')) {
-            await deleteReceiptFromHistory(receiptId);
+        setConfirmingReceiptId(receiptId);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (confirmingReceiptId) {
+            await deleteReceiptFromHistory(confirmingReceiptId);
+            setConfirmingReceiptId(null);
         }
     };
 
@@ -117,7 +124,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose, onReceiptSe
                                         </div>
 
                                         <button
-                                            onClick={(e) => handleDeleteReceipt(savedReceipt.id, e)}
+                                            onClick={(e) => handleDeleteClick(savedReceipt.id, e)}
                                             className="p-1.5 -mt-1.5 -mr-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -176,7 +183,18 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose, onReceiptSe
                     )}
                 </div>
             </motion.div>
-        </motion.div>,
+
+
+            <ConfirmDialog
+                isOpen={!!confirmingReceiptId}
+                title="Delete Receipt?"
+                message="This action cannot be undone."
+                confirmText="Delete"
+                isDestructive
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmingReceiptId(null)}
+            />
+        </motion.div >,
         document.body
     );
 };

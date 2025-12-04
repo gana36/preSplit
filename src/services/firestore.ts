@@ -8,6 +8,7 @@ import {
     orderBy,
     Timestamp,
     updateDoc,
+    limit,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { ReceiptData, Person, SavedGroup, UserPreferences } from '../types';
@@ -80,7 +81,7 @@ export const updateReceipt = async (
 export const loadReceipts = async (userId: string): Promise<SavedReceipt[]> => {
     try {
         const receiptsRef = collection(db, 'users', userId, 'receipts');
-        const q = query(receiptsRef, orderBy('createdAt', 'desc'));
+        const q = query(receiptsRef, orderBy('createdAt', 'desc'), limit(50));
         const querySnapshot = await getDocs(q);
 
         return querySnapshot.docs.map((doc) => {

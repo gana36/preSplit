@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
+import { ConfirmDialog } from './ConfirmDialog';
 import { X, Users, Plus, Edit2, Trash2, Star, Check } from 'lucide-react';
 import type { SavedGroup } from '../types';
 
@@ -10,11 +11,13 @@ interface GroupsModalProps {
 }
 
 export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
-    const { savedGroups, people, userPreferences, createGroup, loadGroup, updateGroupDetails, deleteGroupById, setDefaultGroup } = useAppStore();
+    const { savedGroups, people, userPreferences, createGroup, loadGroup, updateGroupDetails, deleteGroupById, setDefaultGroup, isGroupLoading } = useAppStore();
     const [isCreating, setIsCreating] = useState(false);
     const [newGroupName, setNewGroupName] = useState('');
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
     const [editingGroupName, setEditingGroupName] = useState('');
+    const [confirmingDeleteGroup, setConfirmingDeleteGroup] = useState<{ id: string; name: string } | null>(null);
+    const [confirmingLoadGroup, setConfirmingLoadGroup] = useState<SavedGroup | null>(null);
 
     const handleCreateGroup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,9 +36,14 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
         setEditingGroupName('');
     };
 
-    const handleDeleteGroup = async (groupId: string, groupName: string) => {
-        if (confirm(`Delete group "${groupName}"?`)) {
-            await deleteGroupById(groupId);
+    const handleDeleteGroup = (groupId: string, groupName: string) => {
+        setConfirmingDeleteGroup({ id: groupId, name: groupName });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (confirmingDeleteGroup) {
+            await deleteGroupById(confirmingDeleteGroup.id);
+            setConfirmingDeleteGroup(null);
         }
     };
 
@@ -48,8 +56,20 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
     };
 
     const handleLoadGroup = (group: SavedGroup) => {
-        loadGroup(group);
-        onClose();
+        if (people.length > 0) {
+            setConfirmingLoadGroup(group);
+        } else {
+            loadGroup(group);
+            onClose();
+        }
+    };
+
+    const handleConfirmLoad = () => {
+        if (confirmingLoadGroup) {
+            loadGroup(confirmingLoadGroup);
+            setConfirmingLoadGroup(null);
+            onClose();
+        }
     };
 
     return createPortal(
@@ -101,9 +121,10 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
                                     <div className="flex gap-2 mt-3">
                                         <button
                                             type="submit"
-                                            className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all"
+                                            disabled={isGroupLoading}
+                                            className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Save Group
+                                            {isGroupLoading ? 'Saving...' : 'Save Group'}
                                         </button>
                                         <button
                                             type="button"
@@ -165,17 +186,25 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleUpdateGroup(group.id)}
-                                                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1"
+                                                    disabled={isGroupLoading}
+                                                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <Check className="w-4 h-4" />
-                                                    Save
+                                                    {isGroupLoading ? (
+                                                        <span>Saving...</span>
+                                                    ) : (
+                                                        <>
+                                                            <Check className="w-4 h-4" />
+                                                            Save
+                                                        </>
+                                                    )}
                                                 </button>
                                                 <button
                                                     onClick={() => {
                                                         setEditingGroupId(null);
                                                         setEditingGroupName('');
                                                     }}
-                                                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 active:scale-[0.98] transition-all"
+                                                    disabled={isGroupLoading}
+                                                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Cancel
                                                 </button>
@@ -187,10 +216,11 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <button
                                                         onClick={() => handleToggleDefault(group.id)}
+                                                        disabled={isGroupLoading}
                                                         className={`p-1 rounded-full transition-all ${userPreferences?.defaultGroupId === group.id
                                                             ? 'text-yellow-500 hover:text-yellow-600'
                                                             : 'text-gray-300 hover:text-yellow-500'
-                                                            }`}
+                                                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                                                         title={userPreferences?.defaultGroupId === group.id ? 'Remove as default' : 'Set as default'}
                                                     >
                                                         <Star className="w-4 h-4" fill={userPreferences?.defaultGroupId === group.id ? 'currentColor' : 'none'} />
@@ -206,14 +236,16 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
                                                             setEditingGroupId(group.id);
                                                             setEditingGroupName(group.name);
                                                         }}
-                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                        disabled={isGroupLoading}
+                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                         title="Edit name"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteGroup(group.id, group.name)}
-                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        disabled={isGroupLoading}
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                         title="Delete group"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -235,7 +267,8 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
 
                                             <button
                                                 onClick={() => handleLoadGroup(group)}
-                                                className="w-full py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                disabled={isGroupLoading}
+                                                className="w-full py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Users className="w-4 h-4" />
                                                 Load Group
@@ -261,6 +294,25 @@ export const GroupsModal: React.FC<GroupsModalProps> = ({ onClose }) => {
                     )}
                 </div>
             </motion.div>
+
+            <ConfirmDialog
+                isOpen={!!confirmingDeleteGroup}
+                title="Delete Group?"
+                message={`Are you sure you want to delete "${confirmingDeleteGroup?.name}"? This cannot be undone.`}
+                confirmText="Delete"
+                isDestructive
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmingDeleteGroup(null)}
+            />
+
+            <ConfirmDialog
+                isOpen={!!confirmingLoadGroup}
+                title="Replace People?"
+                message={`Loading "${confirmingLoadGroup?.name}" will replace the current ${people.length} person${people.length === 1 ? '' : 's'}.`}
+                confirmText="Load Group"
+                onConfirm={handleConfirmLoad}
+                onCancel={() => setConfirmingLoadGroup(null)}
+            />
         </motion.div>,
         document.body
     );
