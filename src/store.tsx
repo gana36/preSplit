@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { ReceiptData, Person, AppPhase, ReceiptItem, User, SavedReceipt } from './types';
+import type { ReceiptData, Person, AppPhase, ReceiptItem, User, SavedReceipt, SavedGroup, UserPreferences } from './types';
 import { onAuthStateChange, signInWithGoogle, signOut } from './services/auth';
-import { saveReceipt as saveReceiptToFirestore, loadReceipts, deleteReceipt, updateReceipt } from './services/firestore';
+import {
+    saveReceipt as saveReceiptToFirestore,
+    loadReceipts,
+    deleteReceipt,
+    updateReceipt,
+    saveGroup as saveGroupToFirestore,
+    loadGroups,
+    updateGroup as updateGroupInFirestore,
+    deleteGroup as deleteGroupFromFirestore,
+    saveUserPreferences,
+    loadUserPreferences
+} from './services/firestore';
 import type { User as FirebaseUser } from 'firebase/auth';
 import toast from 'react-hot-toast';
 
@@ -14,6 +25,9 @@ interface AppState {
     authLoading: boolean;
     receiptHistory: SavedReceipt[];
     currentReceiptId: string | null;
+    savedGroups: SavedGroup[];
+    userPreferences: UserPreferences | null;
+    recentNames: string[];
 }
 
 interface AppContextType extends AppState {
@@ -35,6 +49,12 @@ interface AppContextType extends AppState {
     loadReceipt: (savedReceipt: SavedReceipt) => void;
     deleteReceiptFromHistory: (receiptId: string) => Promise<void>;
     refreshHistory: () => Promise<void>;
+    createGroup: (name: string) => Promise<void>;
+    loadGroup: (group: SavedGroup, silent?: boolean) => boolean;
+    updateGroupDetails: (groupId: string, name: string, people?: Person[]) => Promise<void>;
+    deleteGroupById: (groupId: string) => Promise<void>;
+    setDefaultGroup: (groupId: string | null) => Promise<void>;
+    refreshGroups: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -53,6 +73,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [receiptHistory, setReceiptHistory] = useState<SavedReceipt[]>([]);
     const [currentReceiptId, setCurrentReceiptId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [savedGroups, setSavedGroups] = useState<SavedGroup[]>([]);
+    const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+    const [recentNames, setRecentNames] = useState<string[]>([]);
 
     // Listen to auth state changes
     useEffect(() => {
@@ -65,11 +88,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     photoURL: firebaseUser.photoURL,
                 };
                 setUser(userData);
-                // Load receipt history when user signs in
-                loadReceiptsForUser(firebaseUser.uid);
+                // Load data when user signs in
+                loadUserData(firebaseUser.uid);
             } else {
                 setUser(null);
                 setReceiptHistory([]);
+                setSavedGroups([]);
+                setUserPreferences(null);
+                setRecentNames([]);
             }
             setAuthLoading(false);
         });
@@ -77,15 +103,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return () => unsubscribe();
     }, []);
 
-    // Load receipts for a user
-    const loadReceiptsForUser = async (userId: string) => {
+    // Update recent names when receipt history changes
+    useEffect(() => {
+        const names = extractRecentNames(receiptHistory);
+        setRecentNames(names);
+    }, [receiptHistory]);
+
+    // Load all user data (receipts, groups, preferences)
+    const loadUserData = async (userId: string) => {
         try {
-            const receipts = await loadReceipts(userId);
+            const [receipts, groups, preferences] = await Promise.all([
+                loadReceipts(userId),
+                loadGroups(userId),
+                loadUserPreferences(userId)
+            ]);
             setReceiptHistory(receipts);
+            setSavedGroups(groups);
+            setUserPreferences(preferences);
         } catch (error) {
-            console.error('Error loading receipts:', error);
-            toast.error('Failed to load receipt history');
+            console.error('Error loading user data:', error);
+            toast.error('Failed to load your data');
         }
+    };
+
+    // Extract recent names from receipt history
+    const extractRecentNames = (receipts: SavedReceipt[]): string[] => {
+        const nameMap = new Map<string, Date>();
+
+        receipts.forEach(receipt => {
+            receipt.people.forEach(person => {
+                const existingDate = nameMap.get(person.name);
+                if (!existingDate || receipt.createdAt > existingDate) {
+                    nameMap.set(person.name, receipt.createdAt);
+                }
+            });
+        });
+
+        return Array.from(nameMap.entries())
+            .sort((a, b) => b[1].getTime() - a[1].getTime())
+            .map(([name]) => name)
+            .slice(0, 15);
     };
 
     const addPerson = (name: string) => {
@@ -244,7 +301,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 toast.success('Receipt saved successfully!');
             }
             // Refresh history
-            await loadReceiptsForUser(user.uid);
+            await loadUserData(user.uid);
         } catch (error) {
             console.error('Error saving receipt:', error);
             toast.error('Failed to save receipt');
@@ -268,7 +325,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             await deleteReceipt(user.uid, receiptId);
             toast.success('Receipt deleted');
             // Refresh history
-            await loadReceiptsForUser(user.uid);
+            await loadUserData(user.uid);
         } catch (error) {
             console.error('Error deleting receipt:', error);
             toast.error('Failed to delete receipt');
@@ -277,7 +334,134 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const refreshHistory = async () => {
         if (!user) return;
-        await loadReceiptsForUser(user.uid);
+        await loadUserData(user.uid);
+    };
+
+    // Group management methods
+    const createGroup = async (name: string) => {
+        if (!user || people.length === 0) {
+            if (!user) toast.error('Please sign in to save groups');
+            if (people.length === 0) toast.error('Add people before creating a group');
+            return;
+        }
+
+        // Validate group name
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            toast.error('Group name cannot be empty');
+            return;
+        }
+
+        // Check for duplicate names (case-insensitive)
+        if (savedGroups.some(g => g.name.toLowerCase() === trimmedName.toLowerCase())) {
+            toast.error('A group with this name already exists');
+            return;
+        }
+
+        // Limit group size to 30 people
+        if (people.length > 30) {
+            toast.error('Groups are limited to 30 people');
+            return;
+        }
+
+        try {
+            await saveGroupToFirestore(user.uid, trimmedName, people);
+            toast.success(`Group "${trimmedName}" created!`);
+            await refreshGroups();
+        } catch (error) {
+            console.error('Error creating group:', error);
+            toast.error('Failed to create group');
+        }
+    };
+
+    const loadGroup = (group: SavedGroup, silent = false): boolean => {
+        // Preserve colors by matching names if possible
+        const newPeople = group.people.map((person, index) => {
+            const existingPerson = people.find(p => p.name === person.name);
+            return {
+                ...person,
+                id: crypto.randomUUID(),
+                color: existingPerson?.color || COLORS[index % COLORS.length]
+            };
+        });
+        setPeople(newPeople);
+        if (!silent) {
+            toast.success(`Loaded group "${group.name}"`);
+        }
+        return true;
+    };
+
+    const updateGroupDetails = async (groupId: string, name: string, updatedPeople?: Person[]) => {
+        if (!user) return;
+
+        // Validate group name
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            toast.error('Group name cannot be empty');
+            return;
+        }
+
+        // Check for duplicate names (excluding current group)
+        if (savedGroups.some(g => g.id !== groupId && g.name.toLowerCase() === trimmedName.toLowerCase())) {
+            toast.error('A group with this name already exists');
+            return;
+        }
+
+        try {
+            const peopleToSave = updatedPeople || people;
+            await updateGroupInFirestore(user.uid, groupId, trimmedName, peopleToSave);
+            toast.success('Group updated!');
+            await refreshGroups();
+        } catch (error) {
+            console.error('Error updating group:', error);
+            toast.error('Failed to update group');
+        }
+    };
+
+    const deleteGroupById = async (groupId: string) => {
+        if (!user) return;
+
+        try {
+            await deleteGroupFromFirestore(user.uid, groupId);
+            // If this was the default group, clear the preference
+            if (userPreferences?.defaultGroupId === groupId) {
+                await setDefaultGroup(null);
+            }
+            toast.success('Group deleted');
+            await refreshGroups();
+        } catch (error) {
+            console.error('Error deleting group:', error);
+            toast.error('Failed to delete group');
+        }
+    };
+
+    const setDefaultGroup = async (groupId: string | null) => {
+        if (!user) return;
+
+        try {
+            const newPreferences: UserPreferences = { defaultGroupId: groupId };
+            await saveUserPreferences(user.uid, newPreferences);
+            setUserPreferences(newPreferences);
+            if (groupId) {
+                const group = savedGroups.find(g => g.id === groupId);
+                toast.success(`Default group set to "${group?.name}"`);
+            } else {
+                toast.success('Default group cleared');
+            }
+        } catch (error) {
+            console.error('Error setting default group:', error);
+            toast.error('Failed to update default group');
+        }
+    };
+
+    const refreshGroups = async () => {
+        if (!user) return;
+        try {
+            const groups = await loadGroups(user.uid);
+            setSavedGroups(groups);
+        } catch (error) {
+            console.error('Error refreshing groups:', error);
+        }
     };
 
     const value = {
@@ -288,6 +472,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         authLoading,
         receiptHistory,
         currentReceiptId,
+        savedGroups,
+        userPreferences,
+        recentNames,
         setPhase,
         setReceipt,
         addPerson,
@@ -305,7 +492,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         saveCurrentReceipt,
         loadReceipt,
         deleteReceiptFromHistory,
-        refreshHistory
+        refreshHistory,
+        createGroup,
+        loadGroup,
+        updateGroupDetails,
+        deleteGroupById,
+        setDefaultGroup,
+        refreshGroups
     };
 
     return (

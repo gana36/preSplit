@@ -1,15 +1,27 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { parseReceiptImage } from '../services/gemini';
 import { FinalLogo } from './FinalLogo';
 
 export const CapturePhase: React.FC = () => {
-    const { setReceipt, setPhase } = useAppStore();
+    const { setReceipt, setPhase, user, userPreferences, savedGroups, loadGroup, people } = useAppStore();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+    const [hasAutoLoaded, setHasAutoLoaded] = useState(false);
+
+    // Auto-load default group when component mounts
+    useEffect(() => {
+        if (user && userPreferences?.defaultGroupId && !hasAutoLoaded && people.length === 0) {
+            const defaultGroup = savedGroups.find(g => g.id === userPreferences.defaultGroupId);
+            if (defaultGroup) {
+                loadGroup(defaultGroup, true); // Silent mode - no confirmation dialog
+                setHasAutoLoaded(true);
+            }
+        }
+    }, [user, userPreferences, savedGroups, hasAutoLoaded, people.length, loadGroup]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

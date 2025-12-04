@@ -39,3 +39,15 @@ export interface SavedReceipt {
     createdAt: Date;
     userId: string;
 }
+
+export interface SavedGroup {
+    id: string;
+    name: string;
+    people: Person[];
+    createdAt: Date;
+    userId: string;
+}
+
+export interface UserPreferences {
+    defaultGroupId: string | null;
+}

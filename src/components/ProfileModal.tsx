@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
-import { X, LogOut, History, ChevronRight, Mail } from 'lucide-react';
+import { X, LogOut, History, ChevronRight, Mail, Users } from 'lucide-react';
 import { HistoryModal } from './HistoryModal';
+import { GroupsModal } from './GroupsModal';
 
 interface ProfileModalProps {
     onClose: () => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
-    const { user, signOutUser } = useAppStore();
+    const { user, signOutUser, savedGroups } = useAppStore();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showGroupsModal, setShowGroupsModal] = useState(false);
 
     const [imgError, setImgError] = useState(false);
 
@@ -105,6 +107,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                             </button>
 
                             <button
+                                onClick={() => setShowGroupsModal(true)}
+                                className="w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between group active:scale-[0.99] transition-all"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                                        <Users className="w-5 h-5" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-bold text-gray-900">Saved Groups</div>
+                                        <div className="text-xs text-gray-500 font-medium">
+                                            {savedGroups.length === 0 ? 'Create reusable groups' : `${savedGroups.length} group${savedGroups.length === 1 ? '' : 's'} saved`}
+                                        </div>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
+                            </button>
+
+                            <button
                                 onClick={handleSignOut}
                                 className="w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between group active:scale-[0.99] transition-all"
                             >
@@ -136,6 +156,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                     <HistoryModal
                         onClose={() => setShowHistoryModal(false)}
                         onReceiptSelect={onClose}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showGroupsModal && (
+                    <GroupsModal
+                        onClose={() => setShowGroupsModal(false)}
                     />
                 )}
             </AnimatePresence>
